@@ -1,30 +1,32 @@
+import os
 from flask import Flask
 from flask_socketio import SocketIO
 
 app = Flask(__name__)
-# Keep async_mode='threading' to avoid multi-thread locking on Windows 11
+# Allow cross-origin requests so remote devices can connect securely
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 @socketio.on('connect')
 def handle_connect():
-    print("\n[SERVER] Client connected. Incoming stream will print below:\n---")
+    print("\n[CLOUD SERVER] Remote client session established.\nSTREAM: ", end="", flush=True)
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print("\n---\n[SERVER] Client disconnected.")
+    print("\n---\n[CLOUD SERVER] Remote client disconnected.")
 
-# Cleaned up event listener: strictly receives data and outputs to terminal
 @socketio.on('client_stream')
 def handle_client_stream(data):
     payload = data.get("payload", "")
     
     if payload == " [BACKSPACE] ":
-        # Move console cursor back, blank out the character, and step back again
         print("\b \b", end="", flush=True)
     else:
-        # Stream the characters next to each other horizontally
         print(payload, end="", flush=True)
 
 if __name__ == '__main__':
-    print("[SERVER] Listening for client applications on port 5000...")
-    socketio.run(app, host='127.0.0.1', port=5000)
+    # FIX: Cloud providers inject the port dynamically. Fallback to 5000 if local.
+    port = int(os.environ.get("PORT", 5000))
+    
+    # Bind to 0.0.0.0 so the server listens on all network interfaces
+    print(f"[CLOUD SERVER] Starting network bridge on port {port}...")
+    socketio.run(app, host='0.0.0.0', port=port)
