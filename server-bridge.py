@@ -29,4 +29,11 @@ if __name__ == '__main__':
     
     # Bind to 0.0.0.0 so the server listens on all network interfaces
     print(f"[CLOUD SERVER] Starting network bridge on port {port}...")
-    socketio.run(app, host='0.0.0.0', port=port)
+    # Change the bottom section of server_bridge.py to this:
+
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
+    print(f"[CLOUD SERVER] Starting network bridge on port {port}...")
+    
+    # FIX: Added allow_unsafe_werkzeug=True
+    socketio.run(app, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
